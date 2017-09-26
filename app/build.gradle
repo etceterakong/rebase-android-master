@@ -1,0 +1,143 @@
+/*
+ * Copyright (C) 2017 Drakeet <drakeet.me@gmail.com>
+ *
+ * This file is part of rebase-android
+ *
+ * rebase-android is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * rebase-android is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with rebase-android. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+apply plugin: 'com.android.application'
+
+def releaseKey = file('release.jks')
+def debugKey = file('debug.jks')
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "com.drakeet.rebase"
+        minSdkVersion 18 /* 4.3+ */
+        targetSdkVersion 25
+        versionCode 106
+        versionName "0.9.16"
+        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "GooglePlay"]
+        addManifestPlaceholders([APP_NAME: "@string/rebase_name"])
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    signingConfigs {
+        debug {
+            storeFile debugKey
+            storePassword '123456'
+            keyAlias 'debug'
+            keyPassword '123456'
+        }
+        release {
+            storeFile releaseKey
+            storePassword project.hasProperty('REBASE_STOREPASS') ? REBASE_STOREPASS : ''
+            keyAlias project.hasProperty('REBASE_KEYALIAS') ? REBASE_KEYALIAS : ''
+            keyPassword project.hasProperty('REBASE_KEYPASS') ? REBASE_KEYPASS : ''
+        }
+    }
+
+    buildTypes {
+        debug {
+            versionNameSuffix " debug"
+            applicationIdSuffix ".debug"
+            addManifestPlaceholders([APP_NAME: "@string/rebase_name_debug"])
+        }
+
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles 'proguard-common.pro', 'proguard-rules.pro'
+
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    def outputFile = output.outputFile
+                    if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                        def fileName = "Rebase_v${defaultConfig.versionName}_${variant.productFlavors[0].name}.apk"
+                        output.outputFile = new File(outputFile.parent, fileName)
+                    }
+                }
+            }
+        }
+
+        productFlavors {
+            Xiaomi {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "Xiaomi"]
+            }
+            Baidu {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "Baidu"]
+            }
+            Wandoujia {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "Wandoujia"]
+            }
+            fir {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "fir"]
+            }
+            GooglePlay {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "GooglePlay"]
+            }
+            Smartisan {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "Smartisan"]
+            }
+            KuAn {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "KuAn"]
+            }
+            QQ {
+                manifestPlaceholders = [UMENG_CHANNEL_VALUE: "QQ"]
+            }
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile project(':api')
+    compile project(':web')
+
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testCompile 'junit:junit:4.12'
+
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:support-annotations:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    compile 'me.drakeet.multitype:multitype:3.0.0'
+    compile 'me.drakeet.support:about:1.2.0'
+    compile 'com.jakewharton:butterknife:8.4.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.github.lsjwzh.RecyclerViewPager:lib:v1.1.2'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'bz.tsung.android:objectify:1.1.1'
+    compile 'de.hdodenhof:circleimageview:2.0.0'
+    compile 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+    compile('com.trello.rxlifecycle2:rxlifecycle-components:2.0.1', {
+        exclude group: 'com.google.code.findbugs'
+        exclude group: 'com.android.support'
+    })
+    compile 'com.umeng.analytics:analytics:latest.integration'
+}
